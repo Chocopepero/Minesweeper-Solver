@@ -62,11 +62,12 @@ def capture_minesweeper_board():
             screenshot = sct.grab(monitor)
             board_image = np.array(screenshot)
             board_image = cv2.cvtColor(board_image, cv2.COLOR_BGRA2BGR)
-            
-            # Comment out the line below if you don't want to save the screenshot
-            cv2.imwrite("minesweeper_board_debug.png", board_image)
 
+            # Comment out the 2 lines below if you don't want to save the screenshot
+            cv2.imwrite("minesweeper_board_debug.png", board_image)
             print("Screenshot saved as minesweeper_board_debug.png")
+
+            print(board_image)  # Debug: print shape of captured image
             return board_image
         
         except Exception as e:
