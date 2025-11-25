@@ -79,8 +79,27 @@ class BoardDetector:
         x, y, w, h = board_region
         return image[y:y+h, x:x+w]
     
-    def extract_cells(self, board_image: np.ndarray, 
-                     rows: int, 
+    def auto_detect_board_size(self, board_image: np.ndarray) -> Tuple[int, int]:
+        """
+        Auto-detect the board size based on image dimensions.
+
+        Args:
+            board_image: Board region as numpy array
+
+        Returns:
+            Tuple of (rows, cols)
+        """
+        h, w = board_image.shape[:2]
+
+        # Calculate rows and cols based on fixed cell size
+        cols = w // self.cell_size
+        rows = h // self.cell_size
+
+        print(f"Auto-detected board size: {rows} rows × {cols} columns")
+        return (rows, cols)
+
+    def extract_cells(self, board_image: np.ndarray,
+                     rows: int,
                      cols: int) -> List[List[np.ndarray]]:
         """
         Extract individual cell images from the board.

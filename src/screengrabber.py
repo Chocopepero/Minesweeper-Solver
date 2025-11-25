@@ -1,79 +1,99 @@
-import pygetwindow as gw
-import mss
 import numpy as np
 import cv2
+import win32gui
+import win32ui
+import win32con
+from PIL import Image
 
-def find_minesweeper_window() -> tuple[int, int, int, int]:
+def find_minesweeper_window():
     """
-    Locate the Minesweeper game window on the screen.
+    Locate the Minesweeper game window on the screen using win32gui.
 
     Returns:
-        A tuple (x, y, width, height) representing the window's position and size,
-        or None if the window is not found.
+        Window handle (hwnd) or None if not found.
     """
+    def callback(hwnd, windows):
+        if win32gui.IsWindowVisible(hwnd):
+            title = win32gui.GetWindowText(hwnd)
+            if "Arbiter" in title:
+                windows.append(hwnd)
+        return True
 
-    try:
-        windows = gw.getWindowsWithTitle("Arbiter")
-        
-        if not windows:
-            print("Could not find the Minesweeper Arbiter window.")
-            return None
-        
-        # The first matching window
-        window = windows[0]
-        window.activate()  # Bring window to front (may fail silently)
+    windows = []
+    win32gui.EnumWindows(callback, windows)
 
-        print(f"Found window: {window.title}")
-        print(f"Position: x={window.left}, y={window.top}")
-        print(f"Size: width={window.width}, height={window.height}")
-
-        return (window.left, window.top, window.width, window.height)
-
-    except Exception as e:
-        print(f"Error finding Minesweeper window: {e}")
+    if not windows:
+        print("Could not find the Minesweeper Arbiter window.")
         return None
+
+    hwnd = windows[0]
+    title = win32gui.GetWindowText(hwnd)
+    rect = win32gui.GetWindowRect(hwnd)
+
+    print(f"Found window: {title}")
+    print(f"Position: x={rect[0]}, y={rect[1]}")
+    print(f"Size: width={rect[2]-rect[0]}, height={rect[3]-rect[1]}")
+
+    return hwnd
     
 def capture_minesweeper_board():
     """
-    Capture a screenshot of the Minesweeper Arbiter window for debug purposes.
+    Capture a screenshot of the Minesweeper Arbiter window using win32gui.
     """
-    window_info = find_minesweeper_window()
-    if window_info is None:
+    hwnd = find_minesweeper_window()
+    if hwnd is None:
         print("Cannot capture screenshot: Minesweeper window not found.")
         return None
 
-    x, y, width, height = window_info
-    
-    # Ensure coordinates are valid (MSS doesn't like negative coords or off-screen)
-    x = max(0, x)
-    y = max(0, y)
-    
-    print(f"Capturing region: x={x}, y={y}, width={width}, height={height}")
+    try:
+        # Get window dimensions
+        left, top, right, bottom = win32gui.GetWindowRect(hwnd)
+        width = right - left
+        height = bottom - top
 
-    with mss.mss() as sct:
-        monitor = {
-            "left": x,
-            "top": y,
-            "width": width,
-            "height": height
-        }
-        
-        try:
-            screenshot = sct.grab(monitor)
-            board_image = np.array(screenshot)
-            board_image = cv2.cvtColor(board_image, cv2.COLOR_BGRA2BGR)
+        # Get the window's device context
+        hwndDC = win32gui.GetWindowDC(hwnd)
+        mfcDC = win32ui.CreateDCFromHandle(hwndDC)
+        saveDC = mfcDC.CreateCompatibleDC()
 
-            # Comment out the 2 lines below if you don't want to save the screenshot
-            cv2.imwrite("minesweeper_board_debug.png", board_image)
-            print("Screenshot saved as minesweeper_board_debug.png")
+        # Create a bitmap
+        saveBitMap = win32ui.CreateBitmap()
+        saveBitMap.CreateCompatibleBitmap(mfcDC, width, height)
+        saveDC.SelectObject(saveBitMap)
 
-            print(board_image)  # Debug: print shape of captured image
-            return board_image
-        
-        except Exception as e:
-            print(f"Error capturing screenshot: {e}")
-            print("Tip: Make sure the window is fully on-screen")
-            return None
+        # Copy the window content to the bitmap
+        saveDC.BitBlt((0, 0), (width, height), mfcDC, (0, 0), win32con.SRCCOPY)
+
+        # Convert to PIL Image
+        bmpinfo = saveBitMap.GetInfo()
+        bmpstr = saveBitMap.GetBitmapBits(True)
+        pil_image = Image.frombuffer(
+            'RGB',
+            (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
+            bmpstr, 'raw', 'BGRX', 0, 1
+        )
+
+        # Convert to numpy array (OpenCV format)
+        board_image = np.array(pil_image)
+        board_image = cv2.cvtColor(board_image, cv2.COLOR_RGB2BGR)
+
+        # Clean up
+        win32gui.DeleteObject(saveBitMap.GetHandle())
+        saveDC.DeleteDC()
+        mfcDC.DeleteDC()
+        win32gui.ReleaseDC(hwnd, hwndDC)
+
+        # Save debug screenshot (only in debug mode)
+        # cv2.imwrite("minesweeper_board_debug.png", board_image)
+        # print("Screenshot saved as minesweeper_board_debug.png")
+
+        return board_image
+
+    except Exception as e:
+        print(f"Error capturing screenshot: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
 
 if __name__ == "__main__":
     capture_minesweeper_board()
