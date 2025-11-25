@@ -90,12 +90,18 @@ The solver applies rules in this order:
 4. **Subset Overlap Pattern:**
    ```
    [1][2]
-    U UU
+    U  U  U
+
    ```
-   - If N(A) ⊆ N(B), then mines in N(B) \ N(A) = number(B) - number(A)
-   - If the difference equals the count, those cells are all mines
-   - If the difference is 0, those cells are all safe
-   - **This is the most powerful pattern** - works with any number combination!
+   - A -> 1
+   - B -> 2
+   - Let N(A) = hidden neighbors of A (unrevealed, not flagged)
+   - Let N(B) = hidden neighbors of B
+   - If all hidden neighbors of A are also neighbors of B → N(A) ⊆ N(B)
+   - Then the extra tiles for B are: N(B) \ N(A) (the ones only B touches)
+   - Mines in those extra tiles = number(B) - number(A)
+   - If that difference equals the number of extra tiles, all those extra tiles are mines
+   - If that difference is 0, all those extra tiles are safe
 
 5. **1-2-1 Pattern:**
    ```
