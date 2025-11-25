@@ -305,24 +305,6 @@ class MinesweeperSolver:
 
         return safe_cells, mines
 
-    def find_single_neighbor_pattern(self, board_state: List[List[CellState]]) -> Tuple[Set[Tuple[int, int]], Set[Tuple[int, int]]]:
-        """
-        Find cells where a 1 has exactly one unrevealed neighbor.
-        That neighbor must be a mine.
-
-        This is already handled by basic rules, but kept for clarity.
-
-        Returns:
-            (safe_cells, mines) tuple
-        """
-        safe_cells = set()
-        mines = set()
-
-        # This is actually already covered by find_mines basic rule
-        # Keeping it separate for documentation purposes
-
-        return safe_cells, mines
-
     def find_corner_1_pattern(self, board_state: List[List[CellState]]) -> Tuple[Set[Tuple[int, int]], Set[Tuple[int, int]]]:
         """
         Find corner 1 pattern: A 1 in the corner means only one mine among its neighbors.
