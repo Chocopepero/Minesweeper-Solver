@@ -12,6 +12,10 @@ from src.cell_classifier import CellClassifier, CellState
 from src.solver import MinesweeperSolver
 from src.mouse_controller import MouseController
 
+from src.solver import log_game_result 
+import time
+
+
 
 def count_game_state(board_state):
     """Count different cell types to track game progress."""
@@ -63,6 +67,12 @@ def run_solver(rows, cols, board_region):
 
     print(f"✅ Ready to solve {rows}×{cols} board\n")
 
+    #initialize performance counters
+    flags_placed = 0
+    guesses_made = 0
+    moves_total = 0
+    start_time = time.time()
+
     # Check if board is fresh (all unrevealed)
     board_image = capture_minesweeper_board()
     board = detector.extract_board(board_image, board_region)
@@ -104,6 +114,46 @@ def run_solver(rows, cols, board_region):
             is_won = "WON" in result
             print(f"\n{'🎉' if is_won else '💥'} Game Over: {result}!")
             classifier.print_board_state(board_state)
+
+            # === LOGGING SECTION ===
+            time_elapsed = time.time() - start_time
+
+            # Detect difficulty
+            if rows == 9 and cols == 9:
+                difficulty = "beginner"
+            elif rows == 16 and cols == 16:
+                difficulty = "intermediate"
+            elif rows == 16 and cols == 30:
+                difficulty = "expert"
+            else:
+                difficulty = f"{rows}x{cols}"
+
+            # Determine status and completion %
+            status = "win" if is_won else "fail"
+            import re
+            match = re.search(r"\((\d+\.\d+)% complete", result)
+            completion = float(match.group(1)) if match else (100.0 if is_won else 0.0)
+
+            # Auto-generate game number
+            import os
+            game_id = 1
+            if os.path.exists("results.csv"):
+                with open("results.csv") as f:
+                    game_id = sum(1 for _ in f)
+
+            # Log the result
+            log_game_result(
+                game_number=game_id,
+                difficulty=difficulty,
+                status=status,
+                time_taken=time_elapsed,
+                completion=completion,
+                flags_placed=flags_placed,
+                guesses_made=guesses_made,
+                moves_total=moves_total
+            )
+
+            print(f"\n✅ Logged Game #{game_id}: {difficulty.title()} - {status.upper()} ({completion:.1f}%, {time_elapsed:.2f}s)")
             break
 
         # Find moves
@@ -123,17 +173,21 @@ def run_solver(rows, cols, board_region):
                 break
 
             print(f"\n🎲 Making educated guess at ({guess[0]}, {guess[1]})")
-            safe_cells = {guess}  # Treat guess as a safe cell to click
+            safe_cells = {guess}
+            guesses_made += 1  # count each educated guess as a guess move
 
         # Flag mines first
         if mines:
             print(f"\n🚩 Flagging {len(mines)} mines...")
             mouse.click_cells(list(mines), right_click=True, delay=0.01)
+            flags_placed += len(mines)
+            moves_total += len(mines)
 
         # Click safe cells
         if safe_cells:
             print(f"\n✅ Clicking {len(safe_cells)} safe cells...")
             mouse.click_cells(list(safe_cells), right_click=False, delay=0.01)
+            moves_total += len(safe_cells)
 
         # Show progress
         counts = count_game_state(board_state)
