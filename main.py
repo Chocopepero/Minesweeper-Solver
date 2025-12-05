@@ -199,7 +199,6 @@ def run_solver(rows, cols, board_region):
     print("=" * 60)
     return 0
 
-
 def main():
     """Run the complete Minesweeper detection pipeline."""
 
@@ -270,6 +269,27 @@ def main():
         print("\n✅ Analysis complete. Exiting.")
         return 0
 
+def wait_for_new_game(detector, classifier, rows, cols, timeout=60):
+    """Wait until a fresh unrevealed board appears (new game)."""
+    start = time.time()
+    print("\n⌛ Waiting for new game to start...")
+
+    while time.time() - start < timeout:
+        board_image = capture_minesweeper_board()
+        board_region = detector.detect_board_region(board_image)
+        board = detector.extract_board(board_image, board_region)
+        cells = detector.extract_cells(board, rows, cols)
+        board_state = classifier.classify_board(cells)
+
+        # Check if every cell is still unrevealed (fresh board)
+        if all(cell == CellState.UNREVEALED for row in board_state for cell in row):
+            print("🆕 New game detected! Solver will continue.")
+            return True
+
+        time.sleep(1)
+
+    print("⚠️ Timeout waiting for new game. Skipping to next.")
+    return False
 
 if __name__ == "__main__":
     try:

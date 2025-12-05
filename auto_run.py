@@ -26,6 +26,10 @@ for difficulty, rows, cols in configs:
     for game_number in range(1, 21):
         print(f"\n🏁 Starting Game {game_number} - {difficulty.title()}")
         time.sleep(2)
+        # Re-detect board region each run
+        board_image = capture_minesweeper_board()
+        board_region = detector.detect_board_region(board_image)
         run_solver(rows, cols, board_region)
+
 
         wait_for_new_game(detector, classifier, rows, cols)
