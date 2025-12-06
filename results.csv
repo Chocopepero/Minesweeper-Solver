@@ -3,3 +3,4 @@ timestamp,game_number,difficulty,status,time_taken,completion,flags_placed,guess
 2025-12-04 10:35:26,2,beginner,fail,0.01,34.6%,0,0,0
 2025-12-05 01:33:57,3,beginner,fail,0.35,42.0%,0,3,8
 2025-12-05 01:37:25,4,beginner,fail,0.81,95.1%,8,2,19
+2025-12-05 18:01:45,5,8x8,fail,1.0,29.7%,2,3,11

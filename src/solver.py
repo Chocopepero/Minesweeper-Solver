@@ -606,6 +606,7 @@ if __name__ == "__main__":
     status = "win" if solved else "fail"
     board_completion = 100.0 if solved else 75.0  # fake completion %
 
+
     # Log the result
     log_game_result(
         game_number=game_id,

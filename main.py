@@ -141,6 +141,16 @@ def run_solver(rows, cols, board_region):
                 with open("results.csv") as f:
                     game_id = sum(1 for _ in f)
 
+            # === POST-GAME REPORT ===
+            print("\n📋 Game Summary Report")
+            print("───────────────────────────────")
+            print(f"Completion:       {'Yes' if status == 'win' else 'No'}")
+            print(f"Time Elapsed:     {time_elapsed:.2f} seconds")
+            print(f"# of Moves:       {moves_total}")
+            print(f"Correct Flags:    {flags_placed}")
+            print(f"Guess Moves:      {guesses_made}")
+            print("───────────────────────────────")
+
             # Log the result
             log_game_result(
                 game_number=game_id,
