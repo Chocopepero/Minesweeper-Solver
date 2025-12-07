@@ -5,6 +5,38 @@ Minesweeper Solver - Uses logic rules to solve the board
 from typing import List, Tuple, Set
 from src.cell_classifier import CellState
 
+import time
+import csv
+from datetime import datetime
+import os
+
+def log_game_result(game_number, difficulty, status, time_taken, completion,
+                    flags_placed=0, guesses_made=0, moves_total=0):
+    """
+    Logs a single game result to results.csv for data analysis.
+    Adds additional fields for flags, guesses, and total moves.
+    """
+    file_exists = os.path.isfile("results.csv")
+
+    with open("results.csv", "a", newline="") as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow([
+                "timestamp", "game_number", "difficulty", "status", "time_taken", "completion",
+                "flags_placed", "guesses_made", "moves_total"
+            ])
+        writer.writerow([
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            game_number,
+            difficulty,
+            status,
+            round(time_taken, 2),
+            f"{completion:.1f}%",
+            flags_placed,
+            guesses_made,
+            moves_total
+        ])
+
 
 class MinesweeperSolver:
     """Solves Minesweeper using logical deduction."""
@@ -658,3 +690,34 @@ class MinesweeperSolver:
 if __name__ == "__main__":
     print("Minesweeper Solver Module")
     print("Import this module to solve Minesweeper boards.")
+
+    from solver import MinesweeperSolver  # or adjust if your solver class is named differently
+
+    # Initialize game and solver
+    solver = MinesweeperSolver()
+
+    # Example: record start time
+    start_time = time.time()
+
+    # Run the solver
+    solved = True   #placeholder for now
+    # Measure total time
+    time_elapsed = time.time() - start_time
+
+    # Example placeholder values
+    game_id = 1  # later you can auto-increment this
+    difficulty = "beginner"
+    status = "win" if solved else "fail"
+    board_completion = 100.0 if solved else 75.0  # fake completion %
+
+
+    # Log the result
+    log_game_result(
+        game_number=game_id,
+        difficulty=difficulty,
+        status=status,
+        time_taken=time_elapsed,
+        completion=board_completion
+    )
+
+    print(f"Game logged: #{game_id} - {status} in {time_elapsed:.2f}s")
