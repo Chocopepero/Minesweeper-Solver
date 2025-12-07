@@ -186,7 +186,7 @@ def run_solver(rows, cols, board_region):
             safe_cells = {guess}
             guesses_made += 1  # count each educated guess as a guess move
 
-        # Flag mines first
+        # Flag mines first 
         if mines:
             print(f"\n🚩 Flagging {len(mines)} mines...")
             mouse.click_cells(list(mines), right_click=True, delay=0.01)
@@ -206,6 +206,7 @@ def run_solver(rows, cols, board_region):
 
     print("\n" + "=" * 60)
     print("Solving complete!")
+    print(f"🎲 Total guess moves made: {guesses_made}")
     print("=" * 60)
     return 0
 

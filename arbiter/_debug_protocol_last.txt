@@ -1,19 +1,49 @@
-20:00:52:933 preferences saved
-16:07:20:024 high score replay automatically saved
-16:04:09:748 Board saved to\boards\Anonymous_8x8-10mines_3BV=14_06.12.2025_16-04-09.abf
-15:59:08:577 high score replay automatically saved
-15:58:45:442 beginner mode selected
-15:58:41:763 ---
-15:58:41:763 who of them got the skills to test me?
-15:58:41:762 ---
-15:58:41:761 warp field stabilized. opening gate to the minesweeper world
-15:58:41:760 encrypt_engine test ok
-15:58:41:759 encrypt_engine testing ...
-15:58:41:758 ---
-15:58:41:757 language  | 00000409
-15:58:41:757 timezone  | Pacific Standard Time (GMT -8:00)
-15:58:41:756 platform  | Windows NT 6.2 build 9200, 
-15:58:41:755 memory    | 2047,0 of 2047,0 MB RAM free
-15:58:41:755 cpu speed | run the command get_cpu_speed
-15:58:41:754 date      | Sat, 06.12.2025, process 0x00600882 launched
-15:58:41:743 path      | G:\MINESWEEPER-SOLVER\ARBITER\
+22:48:27:834 preferences saved
+22:41:27:671 Board saved to\boards\Anonymous_30x16-99mines_3BV=171_06.12.2025_22-41-27.abf
+22:41:19:653 Board saved to\boards\Anonymous_30x16-99mines_3BV=171_06.12.2025_22-41-19.abf
+22:41:14:098 Board saved to\boards\Anonymous_30x16-99mines_3BV=171_06.12.2025_22-41-14.abf
+22:41:09:242 Board saved to\boards\Anonymous_30x16-99mines_3BV=171_06.12.2025_22-41-09.abf
+22:38:31:869 high score replay automatically saved
+22:31:33:670 high score replay automatically saved
+22:30:50:284 high score replay automatically saved
+22:20:51:733 memory_usage: [22:20] 2147483647 ==> used 0
+22:20:51:732 expert mode selected
+22:13:36:590 high score replay automatically saved
+22:05:13:292 Board saved to\boards\Anonymous_16x16-40mines_3BV=58_06.12.2025_22-05-13.abf
+21:57:55:235 high score replay automatically saved
+21:56:38:220 high score replay automatically saved
+21:56:12:284 high score replay automatically saved
+21:55:47:250 high score replay automatically saved
+21:55:11:273 high score replay automatically saved
+21:54:44:363 high score replay automatically saved
+21:54:04:141 high score replay automatically saved
+21:53:37:373 high score replay automatically saved
+21:53:22:355 memory_usage: [21:53] 2147483647 ==> used 0
+21:53:22:354 intermediate mode selected
+21:49:45:037 beginner mode selected
+21:49:36:036 memory_usage: [21:49] 2147483647 ==> used 0
+21:49:36:033 expert mode selected
+21:48:59:881 beginner mode selected
+21:48:55:096 memory_usage: [21:48] 2147483647 ==> used 0
+21:48:55:093 expert mode selected
+21:40:03:335 high score replay automatically saved
+21:35:34:361 memory_usage: [21:35] 2147483647 ==> used 0
+21:35:34:360 beginner mode selected
+21:35:07:973 close preferences window
+21:35:07:972 preferences applied
+21:35:07:969 preferences loaded
+21:35:07:797 preferences saved
+21:34:07:386 ---
+21:34:07:385 who of them got the skills to test me?
+21:34:07:383 ---
+21:34:07:381 warp field stabilized. opening gate to the minesweeper world
+21:34:07:379 encrypt_engine test ok
+21:34:07:377 encrypt_engine testing ...
+21:34:07:375 ---
+21:34:07:373 language  | 00000409
+21:34:07:370 timezone  | Pacific Standard Time (GMT -8:00)
+21:34:07:368 platform  | Windows NT 6.2 build 9200, 
+21:34:07:366 memory    | 2047,0 of 2047,0 MB RAM free
+21:34:07:364 cpu speed | run the command get_cpu_speed
+21:34:07:362 date      | Sat, 06.12.2025, process 0x00460CA4 launched
+21:34:07:351 path      | G:\MINESWEEPER-SOLVER\ARBITER\
