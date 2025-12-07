@@ -105,6 +105,7 @@ class MouseController:
             time.sleep(delay)
 
 
+
 if __name__ == "__main__":
     print("Mouse Controller Module")
     print("Import this module to control mouse clicks on Minesweeper.")

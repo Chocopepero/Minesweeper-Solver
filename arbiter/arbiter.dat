@@ -1,6 +1,6 @@
 ;Minesweeper Arbiter (Version 0.52.3)
 ;Configuration File
-;Saved Sat, 18 oct 2025 at 14_00_59
+;Saved Sat, 06 dec 2025 at 20_00_52
 ;Read-only! Manual edition prohibited!
 
 [GLOBALS]
@@ -14,9 +14,9 @@ TrayIcon=0
 TextHistorySaveWins=0
 TextHistorySaveBlasts=0
 TextHistorySaveF2s=0
-LastPath="C:\USERS\SAMKU\DESKTOP\MINESWEEPER-SOLVER\ARBITER\"
-posMainX=511
-posMainY=169
+LastPath="G:\MINESWEEPER-SOLVER\ARBITER\"
+posMainX=152
+posMainY=511
 posCountersX=371
 posCountersY=95
 posProgressBarX=0
@@ -110,7 +110,7 @@ doCond=1
 [COUNTER]
 widthCr1=60
 widthCr2=68
-heightCr3=26
+heightCr3=25
 doShowCounters=0
 doShowCountersTitle=1
 doShowCntGreenBorder=1

@@ -490,10 +490,93 @@ class MinesweeperSolver:
             'mines': mines
         }
 
+    def calculate_mine_probabilities(self, board_state: List[List[CellState]]) -> dict:
+        """
+        Calculate mine probabilities for all unrevealed cells.
+
+        Uses constraint-based analysis: For each number cell, we know exactly how many
+        mines are in its unrevealed neighbors. This creates constraints that help us
+        calculate probabilities.
+
+        Args:
+            board_state: 2D list of CellState values
+
+        Returns:
+            Dict mapping (row, col) to probability of being a mine
+        """
+        probabilities = {}
+
+        # First, identify all unrevealed cells
+        unrevealed_cells = set()
+        for row in range(self.rows):
+            for col in range(self.cols):
+                if board_state[row][col] == CellState.UNREVEALED:
+                    unrevealed_cells.add((row, col))
+                    probabilities[(row, col)] = 0.0  # Initialize with 0 probability
+
+        if not unrevealed_cells:
+            return probabilities
+
+        # For each number cell, calculate constraints
+        constraint_groups = []
+        for row in range(self.rows):
+            for col in range(self.cols):
+                state = board_state[row][col]
+
+                # Check if it's a number cell
+                if state in [CellState.REVEALED_1, CellState.REVEALED_2,
+                           CellState.REVEALED_3, CellState.REVEALED_4,
+                           CellState.REVEALED_5, CellState.REVEALED_6,
+                           CellState.REVEALED_7, CellState.REVEALED_8]:
+
+                    number = int(state.value)
+                    neighbor_info = self.count_neighbor_states(board_state, row, col)
+
+                    # Calculate remaining mines (total mines - already flagged)
+                    remaining_mines = number - len(neighbor_info['flags'])
+                    unrevealed_neighbors = neighbor_info['unrevealed']
+
+                    if unrevealed_neighbors and remaining_mines > 0:
+                        # This creates a constraint: exactly 'remaining_mines' of these cells are mines
+                        constraint_groups.append({
+                            'cells': set(unrevealed_neighbors),
+                            'mines': remaining_mines
+                        })
+
+        # Calculate probabilities based on constraints
+        # For each unrevealed cell, count how many constraints affect it
+        for cell in unrevealed_cells:
+            total_weight = 0
+            mine_weight = 0
+
+            for constraint in constraint_groups:
+                if cell in constraint['cells']:
+                    # This cell is part of this constraint
+                    cells_in_group = len(constraint['cells'])
+                    mines_in_group = constraint['mines']
+
+                    # Basic probability for this constraint
+                    if cells_in_group > 0:
+                        prob = mines_in_group / cells_in_group
+                        weight = 1.0 / cells_in_group  # Weight inversely proportional to group size
+
+                        mine_weight += prob * weight
+                        total_weight += weight
+
+            # Calculate weighted average probability
+            if total_weight > 0:
+                probabilities[cell] = mine_weight / total_weight
+            else:
+                # No constraints affect this cell - use a default low probability
+                # (These are typically cells far from any revealed numbers)
+                probabilities[cell] = 0.2  # Default assumption: 20% chance
+
+        return probabilities
+
     def make_educated_guess(self, board_state: List[List[CellState]]) -> Tuple[int, int]:
         """
-        Make an educated guess when stuck.
-        Strategy: Pick unrevealed cell with most revealed neighbors (safest guess).
+        Make an educated guess using probability analysis.
+        Strategy: Calculate mine probabilities and pick the cell with lowest probability.
 
         Args:
             board_state: 2D list of CellState values
@@ -501,32 +584,53 @@ class MinesweeperSolver:
         Returns:
             (row, col) tuple of cell to guess, or None if no unrevealed cells
         """
+        # Calculate mine probabilities for all unrevealed cells
+        probabilities = self.calculate_mine_probabilities(board_state)
+
+        if not probabilities:
+            return None
+
+        # Find the cell with the lowest mine probability
         best_cell = None
-        max_revealed_neighbors = -1
+        min_probability = float('inf')
 
-        for row in range(self.rows):
-            for col in range(self.cols):
-                if board_state[row][col] != CellState.UNREVEALED:
-                    continue
+        # Also track cells with no constraints (frontier cells)
+        frontier_cells = []
 
-                # Count revealed neighbors
-                neighbors = self.get_neighbors(row, col)
-                revealed_count = 0
+        for (row, col), prob in probabilities.items():
+            # Check if this is a frontier cell (no adjacent numbers)
+            neighbors = self.get_neighbors(row, col)
+            has_number_neighbor = False
 
-                for nr, nc in neighbors:
-                    state = board_state[nr][nc]
-                    # Count revealed cells (numbers or empty)
-                    if state in [CellState.REVEALED_0, CellState.REVEALED_1,
-                               CellState.REVEALED_2, CellState.REVEALED_3,
-                               CellState.REVEALED_4, CellState.REVEALED_5,
-                               CellState.REVEALED_6, CellState.REVEALED_7,
-                               CellState.REVEALED_8]:
-                        revealed_count += 1
+            for nr, nc in neighbors:
+                state = board_state[nr][nc]
+                if state in [CellState.REVEALED_1, CellState.REVEALED_2,
+                           CellState.REVEALED_3, CellState.REVEALED_4,
+                           CellState.REVEALED_5, CellState.REVEALED_6,
+                           CellState.REVEALED_7, CellState.REVEALED_8]:
+                    has_number_neighbor = True
+                    break
 
-                # Pick cell with most revealed neighbors (statistically safer)
-                if revealed_count > max_revealed_neighbors:
-                    max_revealed_neighbors = revealed_count
-                    best_cell = (row, col)
+            if not has_number_neighbor:
+                frontier_cells.append((row, col))
+
+            # Track the cell with minimum probability
+            if prob < min_probability:
+                min_probability = prob
+                best_cell = (row, col)
+
+        # If we have frontier cells and the best probability is not significantly better,
+        # prefer a frontier cell (they often open up large areas)
+        if frontier_cells and min_probability > 0.3:
+            # Pick a frontier cell (preferably in the middle of the board for maximum reveal)
+            center_row = self.rows // 2
+            center_col = self.cols // 2
+
+            frontier_cells.sort(key=lambda c: abs(c[0] - center_row) + abs(c[1] - center_col))
+            best_cell = frontier_cells[0]
+            print(f"   Choosing frontier cell at ({best_cell[0]}, {best_cell[1]}) - may reveal large area")
+        else:
+            print(f"   Probability analysis: ({best_cell[0]}, {best_cell[1]}) has {min_probability:.1%} mine chance")
 
         return best_cell
 

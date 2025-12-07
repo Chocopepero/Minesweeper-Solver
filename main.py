@@ -33,7 +33,19 @@ def is_game_over(board_state, rows, cols):
         revealed = total_cells - unrevealed
         completion = (revealed / total_cells) * 100
         return True, f"LOST ({completion:.1f}% complete)"
+
+    # Check if we won - ONLY when all non-mine cells are revealed
+    unrevealed = counts.get(CellState.UNREVEALED, 0)
+    flags = counts.get(CellState.FLAG, 0)
+
+    # The only win condition: No unrevealed cells remaining
+    # (all non-mine cells have been revealed)
+    if unrevealed == 0 and flags > 0:
+        return True, "WON"
+
+    # Game is not over if there are still unrevealed cells
     return False, None
+
 
 
 def run_solver(rows, cols, board_region):
@@ -41,6 +53,9 @@ def run_solver(rows, cols, board_region):
     print("=" * 60)
     print("Starting Auto-Solver")
     print("=" * 60)
+
+    # Initialize tracking variables
+    guess_moves = 0
 
     # Get window handle
     print("\nFinding Minesweeper window...")
@@ -70,11 +85,13 @@ def run_solver(rows, cols, board_region):
     initial_state = classifier.classify_board(cells)
     counts = count_game_state(initial_state)
 
-    # If board is completely unrevealed, make first click in top-left corner
+    # If board is completely unrevealed, make first click in the center
     if counts.get(CellState.UNREVEALED, 0) == rows * cols:
-        print("🎯 Board is fresh. Making first click in the top-left corner...")
-        # Click at (0, 0) - top-left corner
-        mouse.click_cell(0, 0)
+        center_row = rows // 2
+        center_col = cols // 2
+        print(f"🎯 Board is fresh. Making first click in the center at ({center_row}, {center_col})...")
+        # Click at center of the board
+        mouse.click_cell(center_row, center_col)
         time.sleep(0.5)
 
     # Main solving loop
@@ -83,6 +100,10 @@ def run_solver(rows, cols, board_region):
 
     iteration = 0
     max_iterations = 1000
+    last_unrevealed_count = -1
+    stuck_counter = 0
+    last_safe_cells = set()
+    last_mines = set()
 
     while iteration < max_iterations:
         iteration += 1
@@ -98,7 +119,7 @@ def run_solver(rows, cols, board_region):
         cells = detector.extract_cells(board, rows, cols)
         board_state = classifier.classify_board(cells)
 
-        # Check if game is over
+        # Check if game is over FIRST before doing anything else
         game_over, result = is_game_over(board_state, rows, cols)
         if game_over:
             is_won = "WON" in result
@@ -106,6 +127,7 @@ def run_solver(rows, cols, board_region):
             classifier.print_board_state(board_state)
             break
 
+        # Only proceed with finding moves if game is NOT over
         # Find moves
         solution = solver.solve_step(board_state)
         safe_cells = solution['safe_cells']
@@ -114,16 +136,45 @@ def run_solver(rows, cols, board_region):
         # Print what we found
         solver.print_solution(safe_cells, mines)
 
+        # Check if we're stuck (finding the same cells repeatedly)
+        if safe_cells == last_safe_cells and mines == last_mines and (safe_cells or mines):
+            stuck_counter += 1
+            if stuck_counter >= 3:
+                print("\n⚠️ Solver is stuck - finding the same cells repeatedly.")
+                print("These cells may already be revealed or incorrectly identified.")
+                # List the problematic cells for debugging
+                if safe_cells:
+                    print(f"Stuck on cells: {list(safe_cells)[:5]}")
+                break
+        else:
+            stuck_counter = 0
+            last_safe_cells = safe_cells.copy() if safe_cells else set()
+            last_mines = mines.copy() if mines else set()
+
         # If no moves found, make an educated guess
         if not safe_cells and not mines:
+            # First check if game is already lost (mine visible)
+            counts = count_game_state(board_state)
+            if counts.get(CellState.MINE, 0) > 0:
+                print("\n💥 Game already lost - mine is visible.")
+                break
+
             guess = solver.make_educated_guess(board_state)
             if guess is None:
                 print("\n⚠️  No unrevealed cells found. Game may be complete.")
                 classifier.print_board_state(board_state)
                 break
 
-            print(f"\n🎲 Making educated guess at ({guess[0]}, {guess[1]})")
+            print(f"\n🎲 Making probability-based guess at ({guess[0]}, {guess[1]})")
             safe_cells = {guess}  # Treat guess as a safe cell to click
+            guess_moves += 1
+
+        # Before making any moves, double-check the game isn't over
+        # (in case we missed a mine from the previous move)
+        counts = count_game_state(board_state)
+        if counts.get(CellState.MINE, 0) > 0:
+            print("\n💥 Mine detected! Game is already over.")
+            break
 
         # Flag mines first
         if mines:
@@ -135,15 +186,52 @@ def run_solver(rows, cols, board_region):
             print(f"\n✅ Clicking {len(safe_cells)} safe cells...")
             mouse.click_cells(list(safe_cells), right_click=False, delay=0.01)
 
+            # After clicking, immediately check if we hit a mine
+            time.sleep(0.2)  # Small delay to let the board update
+            quick_check = capture_minesweeper_board()
+            if quick_check is not None:
+                quick_board = detector.extract_board(quick_check, board_region)
+                quick_cells = detector.extract_cells(quick_board, rows, cols)
+                quick_state = classifier.classify_board(quick_cells)
+                game_over, result = is_game_over(quick_state, rows, cols)
+                if game_over:
+                    is_won = "WON" in result
+                    print(f"\n{'🎉' if is_won else '💥'} Game Over: {result}!")
+                    classifier.print_board_state(quick_state)
+                    break
+
         # Show progress
         counts = count_game_state(board_state)
         unrevealed = counts.get(CellState.UNREVEALED, 0)
         print(f"\n📊 Progress: {unrevealed} cells remaining")
 
+        # Check if we're stuck (unrevealed count not changing)
+        if unrevealed == last_unrevealed_count and unrevealed > 0:
+            stuck_counter += 1
+            if stuck_counter >= 3:
+                print("\n⚠️ No progress being made - board state is not changing.")
+                print("The game may be complete or the solver is stuck.")
+                # Do one final check to see if game is actually won
+                final_check = capture_minesweeper_board()
+                if final_check is not None:
+                    final_board = detector.extract_board(final_check, board_region)
+                    final_cells = detector.extract_cells(final_board, rows, cols)
+                    final_state = classifier.classify_board(final_cells)
+                    game_over, result = is_game_over(final_state, rows, cols)
+                    if game_over:
+                        print(f"\n{'🎉' if 'WON' in result else '💥'} Game Over: {result}!")
+                break
+        else:
+            last_unrevealed_count = unrevealed
+
     print("\n" + "=" * 60)
-    print("Solving complete!")
+    print("🏁 GAME RESULTS")
+    print("=" * 60)
+    print(f"🎲 Guess Moves: {guess_moves}")
     print("=" * 60)
     return 0
+
+
 
 
 def main():

@@ -1,15 +1,19 @@
-14:00:59:923 preferences saved
-14:00:45:691 ---
-14:00:45:690 who of them got the skills to test me?
-14:00:45:690 ---
-14:00:45:689 warp field stabilized. opening gate to the minesweeper world
-14:00:45:688 encrypt_engine test ok
-14:00:45:687 encrypt_engine testing ...
-14:00:45:687 ---
-14:00:45:686 language  | 00000409
-14:00:45:685 timezone  | Pacific Standard Time (GMT -8:00)
-14:00:45:685 platform  | Windows NT 6.2 build 9200, 
-14:00:45:685 memory    | 2047,0 of 2047,0 MB RAM free
-14:00:45:684 cpu speed | run the command get_cpu_speed
-14:00:45:684 date      | Sat, 18.10.2025, process 0x00030744 launched
-14:00:45:680 path      | C:\USERS\SAMKU\DESKTOP\MINESWEEPER-SOLVER\ARBITER\
+20:00:52:933 preferences saved
+16:07:20:024 high score replay automatically saved
+16:04:09:748 Board saved to\boards\Anonymous_8x8-10mines_3BV=14_06.12.2025_16-04-09.abf
+15:59:08:577 high score replay automatically saved
+15:58:45:442 beginner mode selected
+15:58:41:763 ---
+15:58:41:763 who of them got the skills to test me?
+15:58:41:762 ---
+15:58:41:761 warp field stabilized. opening gate to the minesweeper world
+15:58:41:760 encrypt_engine test ok
+15:58:41:759 encrypt_engine testing ...
+15:58:41:758 ---
+15:58:41:757 language  | 00000409
+15:58:41:757 timezone  | Pacific Standard Time (GMT -8:00)
+15:58:41:756 platform  | Windows NT 6.2 build 9200, 
+15:58:41:755 memory    | 2047,0 of 2047,0 MB RAM free
+15:58:41:755 cpu speed | run the command get_cpu_speed
+15:58:41:754 date      | Sat, 06.12.2025, process 0x00600882 launched
+15:58:41:743 path      | G:\MINESWEEPER-SOLVER\ARBITER\
