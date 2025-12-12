@@ -1,10 +1,8 @@
 """
 Auto-Solve Minesweeper - Main solving loop
-Reads the board, finds moves, and clicks them automatically
 """
 
 import sys
-import cv2
 import time
 from src.screengrabber import capture_minesweeper_board, find_minesweeper_window
 from src.board_detector import BoardDetector
@@ -14,7 +12,6 @@ from src.mouse_controller import MouseController
 
 
 def count_game_state(board_state):
-    """Count different cell types to track game progress."""
     counts = {}
     for row in board_state:
         for cell in row:
@@ -31,7 +28,7 @@ def is_game_over(board_state):
     # If only unrevealed cells and flags remain, check if we won
     unrevealed = counts.get(CellState.UNREVEALED, 0)
     flags = counts.get(CellState.FLAG, 0)
-    if unrevealed + flags < 10:  # Adjust based on mine count
+    if unrevealed + flags < 10: 
         return True, "WON"
     return False, None
 
@@ -94,12 +91,11 @@ def main():
     print(f"  Unrevealed: {counts.get(CellState.UNREVEALED, 0)}")
     print(f"  Revealed: {rows * cols - counts.get(CellState.UNREVEALED, 0)}")
 
-    # If board is completely unrevealed, make first click in center
     if counts.get(CellState.UNREVEALED, 0) == rows * cols:
         print("\n🎯 Board is fresh. Making first click in the center...")
         center_row, center_col = rows // 2, cols // 2
         mouse.click_cell(center_row, center_col)
-        time.sleep(0.5)  # Wait for board to update
+        time.sleep(0.5)  
 
     # Step 6: Main solving loop
     print("\n[5/5] Starting solving loop...")

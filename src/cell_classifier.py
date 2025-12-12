@@ -1,8 +1,3 @@
-"""
-Cell classification for Minesweeper.
-Identifies the state of each cell (unrevealed, revealed, number, flag, mine, etc.)
-"""
-
 import cv2
 import numpy as np
 from enum import Enum

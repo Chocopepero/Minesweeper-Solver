@@ -1,7 +1,3 @@
-"""
-Minesweeper Solver - Uses logic rules to solve the board
-"""
-
 from typing import List, Tuple, Set
 from src.cell_classifier import CellState
 
@@ -12,10 +8,6 @@ import os
 
 def log_game_result(game_number, difficulty, status, time_taken, completion,
                     flags_placed=0, guesses_made=0, moves_total=0):
-    """
-    Logs a single game result to results.csv for data analysis.
-    Adds additional fields for flags, guesses, and total moves.
-    """
     file_exists = os.path.isfile("results.csv")
 
     with open("results.csv", "a", newline="") as f:
@@ -42,27 +34,10 @@ class MinesweeperSolver:
     """Solves Minesweeper using logical deduction."""
 
     def __init__(self, rows: int, cols: int):
-        """
-        Initialize the solver.
-
-        Args:
-            rows: Number of rows in the board
-            cols: Number of columns in the board
-        """
         self.rows = rows
         self.cols = cols
 
     def get_neighbors(self, row: int, col: int) -> List[Tuple[int, int]]:
-        """
-        Get all neighbor coordinates for a cell.
-
-        Args:
-            row: Row index
-            col: Column index
-
-        Returns:
-            List of (row, col) tuples for neighbors
-        """
         neighbors = []
         for dr in [-1, 0, 1]:
             for dc in [-1, 0, 1]:
@@ -75,17 +50,6 @@ class MinesweeperSolver:
 
     def count_neighbor_states(self, board_state: List[List[CellState]],
                             row: int, col: int) -> dict:
-        """
-        Count the different states of neighboring cells.
-
-        Args:
-            board_state: 2D list of CellState values
-            row: Row index
-            col: Column index
-
-        Returns:
-            Dict with counts: {'unrevealed': X, 'flags': Y, 'total': Z}
-        """
         neighbors = self.get_neighbors(row, col)
         unrevealed = []
         flags = []
@@ -104,17 +68,7 @@ class MinesweeperSolver:
         }
 
     def find_safe_cells(self, board_state: List[List[CellState]]) -> Set[Tuple[int, int]]:
-        """
-        Find cells that are safe to click using Rule 1:
-        If a number cell has exactly that many flags around it,
-        all other unrevealed neighbors are safe.
-
-        Args:
-            board_state: 2D list of CellState values
-
-        Returns:
-            Set of (row, col) tuples that are safe to click
-        """
+        """ Find cells that are safe to click using Rule 1 """
         safe_cells = set()
 
         # Check each revealed number cell
@@ -141,17 +95,7 @@ class MinesweeperSolver:
         return safe_cells
 
     def find_mines(self, board_state: List[List[CellState]]) -> Set[Tuple[int, int]]:
-        """
-        Find cells that must be mines using Rule 2:
-        If a number cell has (unrevealed + flags) == number,
-        all unrevealed neighbors are mines.
-
-        Args:
-            board_state: 2D list of CellState values
-
-        Returns:
-            Set of (row, col) tuples that are mines (should be flagged)
-        """
+        """ Find cells that must be mines using Rule 2 """
         mines = set()
 
         # Check each revealed number cell
@@ -178,17 +122,7 @@ class MinesweeperSolver:
         return mines
 
     def find_121_pattern(self, board_state: List[List[CellState]]) -> Tuple[Set[Tuple[int, int]], Set[Tuple[int, int]]]:
-        """
-        Find 1-2-1 pattern: When you have 1-2-1 in a row/column,
-        the cells on the sides of the 2 are safe.
-
-        Pattern: [1] [2] [1]
-                  U  UU  U
-        The two U cells above the 2 are mines, the outer U cells are safe.
-
-        Returns:
-            (safe_cells, mines) tuple
-        """
+        """ Find 1-2-1 pattern: When you have 1-2-1 in a row/column, the cells on the sides of the 2 are safe """
         safe_cells = set()
         mines = set()
 
@@ -253,17 +187,7 @@ class MinesweeperSolver:
         return safe_cells, mines
 
     def find_1221_pattern(self, board_state: List[List[CellState]]) -> Tuple[Set[Tuple[int, int]], Set[Tuple[int, int]]]:
-        """
-        Find 1-2-2-1 pattern: When you have 1-2-2-1 in a row/column,
-        the cells at the ends are safe.
-
-        Pattern: [1] [2] [2] [1]
-                  U  UU  UU  U
-        The four U cells above the 2-2 are mines, the outer U cells are safe.
-
-        Returns:
-            (safe_cells, mines) tuple
-        """
+        """ Find 1-2-2-1 pattern: When you have 1-2-2-1 in a row/column, the cells at the ends are safe """
         safe_cells = set()
         mines = set()
 
@@ -338,18 +262,7 @@ class MinesweeperSolver:
         return safe_cells, mines
 
     def find_corner_1_pattern(self, board_state: List[List[CellState]]) -> Tuple[Set[Tuple[int, int]], Set[Tuple[int, int]]]:
-        """
-        Find corner 1 pattern: A 1 in the corner means only one mine among its neighbors.
-
-        Pattern (top-left corner):
-        [1] U
-         U  U
-
-        If the 1 is in a corner, it has only 3 neighbors. We can deduce mines more easily.
-
-        Returns:
-            (safe_cells, mines) tuple
-        """
+        """ Find corner 1 pattern: A 1 in the corner means only one mine among its neighbors. """
         safe_cells = set()
         mines = set()
 
@@ -394,29 +307,7 @@ class MinesweeperSolver:
         return safe_cells, mines
 
     def find_subset_overlap_pattern(self, board_state: List[List[CellState]]) -> Tuple[Set[Tuple[int, int]], Set[Tuple[int, int]]]:
-        """
-        Find subset overlap pattern between two number cells.
-
-        Rule: If N(A) ⊆ N(B) (A's unrevealed neighbors are a subset of B's),
-        then the mines in N(B) \ N(A) = number(B) - number(A)
-
-        Example:
-        [1][2]  where N(1) ⊆ N(2)
-         U UU
-
-        If N(1) = {U1} and N(2) = {U1, U2, U3}, then:
-        - Mines in N(1) = 1
-        - Mines in N(2) = 2
-        - Therefore mines in {U2, U3} = 2 - 1 = 1
-
-        If |N(B) \ N(A)| = number(B) - number(A):
-            All cells in N(B) \ N(A) are mines
-        If number(B) - number(A) = 0:
-            All cells in N(B) \ N(A) are safe
-
-        Returns:
-            (safe_cells, mines) tuple
-        """
+        """ Find subset overlap pattern between two number cells. """
         safe_cells = set()
         mines = set()
 
@@ -479,15 +370,8 @@ class MinesweeperSolver:
         return safe_cells, mines
 
     def solve_step(self, board_state: List[List[CellState]]) -> dict:
-        """
-        Perform one step of solving.
-
-        Args:
-            board_state: 2D list of CellState values
-
-        Returns:
-            Dict with 'safe_cells' and 'mines' sets
-        """
+        """ Perform one step of solving. """
+       
         # Apply basic rules
         safe_cells = self.find_safe_cells(board_state)
         mines = self.find_mines(board_state)
@@ -523,19 +407,7 @@ class MinesweeperSolver:
         }
 
     def calculate_mine_probabilities(self, board_state: List[List[CellState]]) -> dict:
-        """
-        Calculate mine probabilities for all unrevealed cells.
-
-        Uses constraint-based analysis: For each number cell, we know exactly how many
-        mines are in its unrevealed neighbors. This creates constraints that help us
-        calculate probabilities.
-
-        Args:
-            board_state: 2D list of CellState values
-
-        Returns:
-            Dict mapping (row, col) to probability of being a mine
-        """
+        """ Calculate mine probabilities for all unrevealed cells. """
         probabilities = {}
 
         # First, identify all unrevealed cells
@@ -576,7 +448,6 @@ class MinesweeperSolver:
                         })
 
         # Calculate probabilities based on constraints
-        # For each unrevealed cell, count how many constraints affect it
         for cell in unrevealed_cells:
             total_weight = 0
             mine_weight = 0
@@ -606,16 +477,7 @@ class MinesweeperSolver:
         return probabilities
 
     def make_educated_guess(self, board_state: List[List[CellState]]) -> Tuple[int, int]:
-        """
-        Make an educated guess using probability analysis.
-        Strategy: Calculate mine probabilities and pick the cell with lowest probability.
-
-        Args:
-            board_state: 2D list of CellState values
-
-        Returns:
-            (row, col) tuple of cell to guess, or None if no unrevealed cells
-        """
+        """ Make an educated guess using probability analysis. Strategy: Calculate mine probabilities and pick the cell with lowest probability. """
         # Calculate mine probabilities for all unrevealed cells
         probabilities = self.calculate_mine_probabilities(board_state)
 
@@ -671,14 +533,14 @@ class MinesweeperSolver:
         """Print the found moves in a readable format."""
         if safe_cells:
             print(f"\n✅ Found {len(safe_cells)} safe cells to click:")
-            for row, col in sorted(safe_cells)[:10]:  # Show first 10
+            for row, col in sorted(safe_cells)[:10]:  
                 print(f"   - Row {row}, Col {col}")
             if len(safe_cells) > 10:
                 print(f"   ... and {len(safe_cells) - 10} more")
 
         if mines:
             print(f"\n🚩 Found {len(mines)} mines to flag:")
-            for row, col in sorted(mines)[:10]:  # Show first 10
+            for row, col in sorted(mines)[:10]: 
                 print(f"   - Row {row}, Col {col}")
             if len(mines) > 10:
                 print(f"   ... and {len(mines) - 10} more")
@@ -686,38 +548,3 @@ class MinesweeperSolver:
         if not safe_cells and not mines:
             print("\n❓ No obvious moves found. Will make an educated guess...")
 
-
-if __name__ == "__main__":
-    print("Minesweeper Solver Module")
-    print("Import this module to solve Minesweeper boards.")
-
-    from solver import MinesweeperSolver  # or adjust if your solver class is named differently
-
-    # Initialize game and solver
-    solver = MinesweeperSolver()
-
-    # Example: record start time
-    start_time = time.time()
-
-    # Run the solver
-    solved = True   #placeholder for now
-    # Measure total time
-    time_elapsed = time.time() - start_time
-
-    # Example placeholder values
-    game_id = 1  # later you can auto-increment this
-    difficulty = "beginner"
-    status = "win" if solved else "fail"
-    board_completion = 100.0 if solved else 75.0  # fake completion %
-
-
-    # Log the result
-    log_game_result(
-        game_number=game_id,
-        difficulty=difficulty,
-        status=status,
-        time_taken=time_elapsed,
-        completion=board_completion
-    )
-
-    print(f"Game logged: #{game_id} - {status} in {time_elapsed:.2f}s")

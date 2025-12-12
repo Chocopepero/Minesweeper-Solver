@@ -22,9 +22,58 @@ This project automatically plays Minesweeper Arbiter by:
 - Minesweeper Arbiter (or compatible Minesweeper game)
 - Windows OS (for win32 API support)
 
+## Setup Instructions
+
+### 1. Install Python
+
+If you don't have Python installed:
+
+1. Download Python 3.10 or higher from [python.org](https://www.python.org/downloads/)
+2. Verify installation by opening a terminal/command prompt and running:
+   ```bash
+   python --version
+   ```
+
+### 2. Download This Project
+
+Clone or download this repository:
+
+```bash
+git clone https://github.com/Chocopepero/Minesweeper-Solver.git
+cd Minesweeper-Solver
+```
+
+Or download as ZIP and extract it to a folder of your choice.
+
+### 3. Install Python Dependencies
+
+Open a terminal/command prompt in the project folder and run:
+
+```bash
+pip install -r requirements.txt
+```
+
+This will install:
+- `mss` - Screen capture library
+- `opencv-python` - Image processing
+- `numpy` - Numerical computations
+- `pygetwindow` - Window management
+- `pillow` - Image handling
+- `pywin32` - Windows API access
+
+### 4. Install Minesweeper Arbiter
+
+1. Download Minesweeper Arbiter from [minesweeper.info](http://www.minesweeper.info/downloads/WinmineArbiter.html)
+2. Install and launch the application
+3. The solver is calibrated for Arbiter's default window size and cell dimensions
+
+You're all set! Follow the usage instructions below.
+
+## Usage
+
 ### Basic Usage
 
-1. **Open Minesweeper Arbiter** and make sure the window is visible on screen
+1. **Open Minesweeper Arbiter** and make sure the window is visible on screen with no overlapping apps
 
 2. **Run the analyzer** to view the current board state:
 ```bash
@@ -46,88 +95,3 @@ To run only the solver (without initial analysis):
 ```bash
 python solve.py
 ```
-
-## How It Works
-
-### 1. Computer Vision Pipeline
-
-**Screen Capture:**
-- Uses Windows API (`win32gui`) to capture the Minesweeper Arbiter window
-- Works regardless of window position on screen
-
-**Board Detection:**
-- Auto-detects board dimensions based on window size
-- Uses calibrated offsets for Minesweeper Arbiter (101px top, 15px sides, 43px bottom)
-- Extracts individual 16×16 pixel cells
-
-**Cell Classification:**
-- Analyzes color patterns and brightness to classify each cell
-- Detects: unrevealed cells, numbers (1-8), flags, mines, and empty cells
-- Uses color matching for number detection (each number has distinct color)
-
-### 2. Solving Algorithm
-
-The solver applies rules in this order:
-
-#### **Basic Patterns**
-
-1. **Rule 1 - Safe Cells:**
-   - If a number cell has exactly that many flags around it, all other unrevealed neighbors are safe
-
-2. **Rule 2 - Obvious Mines:**
-   - If a number cell has exactly that many unrevealed cells around it, they're all mines
-
-#### **Advanced Patterns**
-
-3. **Corner 1 Pattern:**
-   ```
-   [1] U    ← Corner position
-    U  U
-   ```
-   - A corner 1 has only 3 neighbors
-   - If only one neighbor is unrevealed, it must be a mine
-
-4. **Subset Overlap Pattern:**
-   ```
-   [1][2]
-    U  U  U
-
-   ```
-   - A -> 1
-   - B -> 2
-   - Let N(A) = hidden neighbors of A (unrevealed, not flagged)
-   - Let N(B) = hidden neighbors of B
-   - If all hidden neighbors of A are also neighbors of B → N(A) ⊆ N(B)
-   - Then the extra tiles for B are: N(B) \ N(A) (the ones only B touches)
-   - Mines in those extra tiles = number(B) - number(A)
-   - If that difference equals the number of extra tiles, all those extra tiles are mines
-   - If that difference is 0, all those extra tiles are safe
-
-5. **1-2-1 Pattern:**
-   ```
-   [1][2][1]
-    U  U  U
-   ```
-   - The middle unrevealed cell (above the 2) is a mine
-   - The outer cells (above the 1s) are safe
-
-6. **1-2-2-1 Pattern:**
-   ```
-   [1][2][2][1]
-    U  U  U  U
-   ```
-   - The two middle unrevealed cells (above the 2s) are mines
-   - The outer cells (above the 1s) are safe
-
-#### **Guessing Strategy**
-
-If no patterns match:
-- Picks the unrevealed cell with the most revealed neighbors (statistically safer)
-- Prefers cells near known safe areas
-
-### 3. Mouse Control
-
-- Calculates exact pixel coordinates for each cell
-- Left-click to reveal cells
-- Right-click to place flags
-- Optimized delays for fast solving (~20ms between clicks)

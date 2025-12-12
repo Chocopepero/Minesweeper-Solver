@@ -6,12 +6,6 @@ import win32con
 from PIL import Image
 
 def find_minesweeper_window():
-    """
-    Locate the Minesweeper game window on the screen using win32gui.
-
-    Returns:
-        Window handle (hwnd) or None if not found.
-    """
     def callback(hwnd, windows):
         if win32gui.IsWindowVisible(hwnd):
             title = win32gui.GetWindowText(hwnd)
@@ -82,10 +76,6 @@ def capture_minesweeper_board():
         saveDC.DeleteDC()
         mfcDC.DeleteDC()
         win32gui.ReleaseDC(hwnd, hwndDC)
-
-        # Save debug screenshot (only in debug mode)
-        # cv2.imwrite("minesweeper_board_debug.png", board_image)
-        # print("Screenshot saved as minesweeper_board_debug.png")
 
         return board_image
 

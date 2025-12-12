@@ -1,10 +1,4 @@
-"""
-Main script for Minesweeper Solver
-Captures the game board, detects cells, and classifies their states
-"""
-
 import sys
-import cv2
 import time
 from src.screengrabber import capture_minesweeper_board, find_minesweeper_window
 from src.board_detector import BoardDetector
@@ -18,7 +12,6 @@ import time
 
 
 def count_game_state(board_state):
-    """Count different cell types to track game progress."""
     counts = {}
     for row in board_state:
         for cell in row:
@@ -27,11 +20,8 @@ def count_game_state(board_state):
 
 
 def is_game_over(board_state, rows, cols):
-    """Check if game is over (won or lost)."""
     counts = count_game_state(board_state)
-    # If there are mines visible, we lost
     if counts.get(CellState.MINE, 0) > 0:
-        # Calculate completion percentage
         total_cells = rows * cols
         unrevealed = counts.get(CellState.UNREVEALED, 0)
         revealed = total_cells - unrevealed
@@ -41,19 +31,16 @@ def is_game_over(board_state, rows, cols):
 
 
 def run_solver(rows, cols, board_region):
-    """Run the auto-solver loop."""
     print("=" * 60)
     print("Starting Auto-Solver")
     print("=" * 60)
 
-    # Get window handle
     print("\nFinding Minesweeper window...")
     hwnd = find_minesweeper_window()
     if hwnd is None:
         print("❌ Failed to find window")
         return 1
 
-    # Initialize components
     print("Initializing solver components...")
     detector = BoardDetector()
     solver = MinesweeperSolver(rows, cols)
@@ -67,27 +54,22 @@ def run_solver(rows, cols, board_region):
 
     print(f"✅ Ready to solve {rows}×{cols} board\n")
 
-    #initialize performance counters
     flags_placed = 0
     guesses_made = 0
     moves_total = 0
     start_time = time.time()
 
-    # Check if board is fresh (all unrevealed)
     board_image = capture_minesweeper_board()
     board = detector.extract_board(board_image, board_region)
     cells = detector.extract_cells(board, rows, cols)
     initial_state = classifier.classify_board(cells)
     counts = count_game_state(initial_state)
 
-    # If board is completely unrevealed, make first click in top-left corner
     if counts.get(CellState.UNREVEALED, 0) == rows * cols:
         print("🎯 Board is fresh. Making first click in the top-left corner...")
-        # Click at (0, 0) - top-left corner
         mouse.click_cell(0, 0)
         time.sleep(0.5)
 
-    # Main solving loop
     print("\nStarting solving loop...")
     print("=" * 60)
 
@@ -98,7 +80,6 @@ def run_solver(rows, cols, board_region):
         iteration += 1
         print(f"\n--- Iteration {iteration} ---")
 
-        # Capture current board state
         board_image = capture_minesweeper_board()
         if board_image is None:
             print("❌ Failed to capture board")
@@ -108,17 +89,14 @@ def run_solver(rows, cols, board_region):
         cells = detector.extract_cells(board, rows, cols)
         board_state = classifier.classify_board(cells)
 
-        # Check if game is over
         game_over, result = is_game_over(board_state, rows, cols)
         if game_over:
             is_won = "WON" in result
             print(f"\n{'🎉' if is_won else '💥'} Game Over: {result}!")
             classifier.print_board_state(board_state)
 
-            # === LOGGING SECTION ===
             time_elapsed = time.time() - start_time
 
-            # Detect difficulty
             if rows == 9 and cols == 9:
                 difficulty = "beginner"
             elif rows == 16 and cols == 16:
@@ -128,20 +106,17 @@ def run_solver(rows, cols, board_region):
             else:
                 difficulty = f"{rows}x{cols}"
 
-            # Determine status and completion %
             status = "win" if is_won else "fail"
             import re
             match = re.search(r"\((\d+\.\d+)% complete", result)
             completion = float(match.group(1)) if match else (100.0 if is_won else 0.0)
 
-            # Auto-generate game number
             import os
             game_id = 1
             if os.path.exists("results.csv"):
                 with open("results.csv") as f:
                     game_id = sum(1 for _ in f)
 
-            # === POST-GAME REPORT ===
             print("\n📋 Game Summary Report")
             print("───────────────────────────────")
             print(f"Completion:       {'Yes' if status == 'win' else 'No'}")
@@ -151,7 +126,6 @@ def run_solver(rows, cols, board_region):
             print(f"Guess Moves:      {guesses_made}")
             print("───────────────────────────────")
 
-            # Log the result
             log_game_result(
                 game_number=game_id,
                 difficulty=difficulty,
@@ -166,15 +140,12 @@ def run_solver(rows, cols, board_region):
             print(f"\n✅ Logged Game #{game_id}: {difficulty.title()} - {status.upper()} ({completion:.1f}%, {time_elapsed:.2f}s)")
             break
 
-        # Find moves
         solution = solver.solve_step(board_state)
         safe_cells = solution['safe_cells']
         mines = solution['mines']
 
-        # Print what we found
         solver.print_solution(safe_cells, mines)
 
-        # If no moves found, make an educated guess
         if not safe_cells and not mines:
             guess = solver.make_educated_guess(board_state)
             if guess is None:
@@ -184,7 +155,7 @@ def run_solver(rows, cols, board_region):
 
             print(f"\n🎲 Making educated guess at ({guess[0]}, {guess[1]})")
             safe_cells = {guess}
-            guesses_made += 1  # count each educated guess as a guess move
+            guesses_made += 1 
 
         # Flag mines first 
         if mines:

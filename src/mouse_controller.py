@@ -1,7 +1,3 @@
-"""
-Mouse Controller - Clicks on cells in the Minesweeper game
-"""
-
 import win32gui
 import win32api
 import win32con
