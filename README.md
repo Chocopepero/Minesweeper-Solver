@@ -45,27 +45,31 @@ cd Minesweeper-Solver
 
 Or download as ZIP and extract it to a folder of your choice.
 
-### 3. Install Python Dependencies
+### 3. Activate the Virtual Environment (Crucial Step)
+Since the virtual environment (`venv`) is included in this repository, you must activate it to ensure dependencies are installed locally and not globally.
 
-Open a terminal/command prompt in the project folder and run:
+| Operating System | Command to Activate |
+| :--- | :--- |
+| **Windows (Command Prompt)** | `venv\Scripts\activate` |
+| **Windows (PowerShell)** | `venv\Scripts\Activate.ps1` |
+| **macOS/Linux** | `source venv/bin/activate` |
 
+You will know the environment is active when the terminal prompt is prefixed with `(venv)`.
+### 4. Install Python Dependencies
+With the virtual environment activated, install all required libraries by running the following command in the project folder:
 ```bash
 pip install -r requirements.txt
 ```
 
-This will install:
-- `mss` - Screen capture library
-- `opencv-python` - Image processing
-- `numpy` - Numerical computations
-- `pygetwindow` - Window management
-- `pillow` - Image handling
-- `pywin32` - Windows API access
 
-### 4. Install Minesweeper Arbiter
+
+### 5. Install Minesweeper Arbiter
 
 1. Download Minesweeper Arbiter from [minesweeper.info](http://www.minesweeper.info/downloads/WinmineArbiter.html)
 2. Install and launch the application
 3. The solver is calibrated for Arbiter's default window size and cell dimensions
+
+Note: Arbiter is included in this repository.
 
 You're all set! Follow the usage instructions below.
 
